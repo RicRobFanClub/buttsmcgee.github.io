@@ -1,0 +1,1128 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+
+        <title>Striatum </title>
+
+        <!-- Babylon.js -->
+        <script src="https://code.jquery.com/pep/0.4.2/pep.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/dat-gui/0.6.2/dat.gui.min.js"></script>
+        <script src="https://preview.babylonjs.com/cannon.js"></script>
+        <script src="https://preview.babylonjs.com/Oimo.js"></script>
+        <script src="https://preview.babylonjs.com/earcut.min.js"></script>
+        <script src="https://preview.babylonjs.com/babylon.js"></script>
+        <script src="https://preview.babylonjs.com/inspector/babylon.inspector.bundle.js"></script>
+        <script src="https://preview.babylonjs.com/materialsLibrary/babylonjs.materials.min.js"></script>
+        <script src="https://preview.babylonjs.com/proceduralTexturesLibrary/babylonjs.proceduralTextures.min.js"></script>
+        <script src="https://preview.babylonjs.com/postProcessesLibrary/babylonjs.postProcess.min.js"></script>
+        <script src="https://preview.babylonjs.com/loaders/babylonjs.loaders.js"></script>
+        <script src="https://preview.babylonjs.com/serializers/babylonjs.serializers.min.js"></script>
+        <script src="https://preview.babylonjs.com/gui/babylon.gui.min.js"></script>
+
+        <style>
+            html, body {
+                overflow: hidden;
+                width: 100%;
+                height: 100%;
+                margin: 0;
+                padding: 0;
+            }
+
+            #renderCanvas {
+                width: 100%;
+                height: 100%;
+                touch-action: none;
+            }
+        </style>
+    </head>
+<body>
+    <canvas id="renderCanvas"></canvas>
+    <script>
+        var canvas = document.getElementById("renderCanvas");
+
+        var createScene = function () {
+            var scene = new BABYLON.Scene(engine);
+        
+			var skybox = BABYLON.Mesh.CreateBox("skyBox", 150.0, scene);
+			var skyboxMaterial = new BABYLON.StandardMaterial("skyBox", scene);
+			skyboxMaterial.backFaceCulling = false;
+			skyboxMaterial.disableLighting = true;
+			skybox.material = skyboxMaterial;
+			skybox.infiniteDistance = true;
+			skyboxMaterial.disableLighting = true;
+			skyboxMaterial.reflectionTexture = new BABYLON.CubeTexture("scene/bpe", scene);
+			skyboxMaterial.reflectionTexture.coordinatesMode = BABYLON.Texture.SKYBOX_MODE;
+
+			
+
+			scene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+			scene.fogDensity = 0.015;
+			
+
+					
+		
+            //Light
+            var light = new BABYLON.PointLight("Omni", new BABYLON.Vector3(1, 1, 10), scene);
+            var light2 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(1, 1, 10), scene);
+						light2.diffuse = new BABYLON.Color3(0, 0, 1);
+						light2.specular = new BABYLON.Color3(0, 1, 0.5);
+						light2.intensity=0.5;
+			light.intensity=0.6;
+				light.diffuse = new BABYLON.Color3(0, 0, 0.2);
+				light.specular = new BABYLON.Color3(0, 0.02, 0.1);
+				
+			var light3 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(1, 1, 50), scene);	
+				light3.intensity=1.3			
+				
+				var light4 = new BABYLON.PointLight("Omni", new BABYLON.Vector3(1, 1, -50), scene);	
+				light4.intensity=0.1
+
+				
+				
+			// Move the light with the camera
+            scene.registerBeforeRender(function () {
+                light.position = camera.position;
+            });
+			
+            //Camera
+			var camera = new BABYLON.ArcRotateCamera("Camera", 180.5, 1.5, 67, BABYLON.Vector3.Zero(), scene);
+			camera.attachControl(canvas, true);
+
+			
+			
+		//BASE MATERIALS
+			//Ventricles base material
+			var ventmat = new BABYLON.StandardMaterial("ventmat", scene);
+			ventmat.diffuseTexture = new BABYLON.Texture("scenes/test1.bmp", scene);
+			ventmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8);
+			ventmat.emissiveTexture = new BABYLON.Texture("scenes/blankglow.bmp", scene);
+
+			
+			
+			//Striatum R base material
+			var rstrimat = new BABYLON.StandardMaterial("strimat", scene);
+			rstrimat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rstrimat.emissiveTexture = new BABYLON.Texture("scenes/blankglow.bmp", scene);
+			rstrimat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			//Striatum L base material
+			var lstrimat = new BABYLON.StandardMaterial("strimat", scene);
+			lstrimat.diffuseTexture = new BABYLON.Texture("scenes/rightstriatum.bmp", scene);
+			lstrimat.emissiveTexture = new BABYLON.Texture("scenes/blankglow.bmp", scene);
+			lstrimat.emissiveColor =new BABYLON.Color3(0.5,0.5,0.5);
+	
+		//SELECTION MATS	
+			var ventmat2 = new BABYLON.StandardMaterial("ventmat2", scene);
+			ventmat2.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			
+			//Lenticular Nucleus
+			var llentglow= new BABYLON.StandardMaterial("llentglow", scene);
+			llentglow.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			llentglow.emissiveTexture = new BABYLON.Texture("scenes/glowlent.bmp", scene);
+			llentglow.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var rlentglow= new BABYLON.StandardMaterial("rlentglow", scene);
+			rlentglow.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rlentglow.emissiveTexture = new BABYLON.Texture("scenes/glowlent.bmp", scene);
+			rlentglow.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			//Globus Pallidus
+			var rgpmat= new BABYLON.StandardMaterial("rgpmat", scene);
+			rgpmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rgpmat.emissiveTexture = new BABYLON.Texture("scenes/glowglobus.bmp", scene);
+			rgpmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			var lgpmat= new BABYLON.StandardMaterial("lgpmat", scene);
+			lgpmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lgpmat.emissiveTexture = new BABYLON.Texture("scenes/glowglobus.bmp", scene);
+			lgpmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 	
+			
+			//Putamen
+			var rputmat= new BABYLON.StandardMaterial("rputmat", scene);
+			rputmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rputmat.emissiveTexture = new BABYLON.Texture("scenes/glowputamen.bmp", scene);
+			rputmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var lputmat= new BABYLON.StandardMaterial("lputmat", scene);
+			lputmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lputmat.emissiveTexture = new BABYLON.Texture("scenes/glowputamen.bmp", scene);
+			lputmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			//Amygdala
+			var ramygmat= new BABYLON.StandardMaterial("ramygmat", scene);
+			ramygmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			ramygmat.emissiveTexture = new BABYLON.Texture("scenes/glowamyg.bmp", scene);
+			ramygmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var lamygmat= new BABYLON.StandardMaterial("lamygmat", scene);
+			lamygmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lamygmat.emissiveTexture = new BABYLON.Texture("scenes/glowamyg.bmp", scene);
+			lamygmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			
+			//Caudate
+			var rcaudmat= new BABYLON.StandardMaterial("rcaudmat", scene);
+			rcaudmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rcaudmat.emissiveTexture = new BABYLON.Texture("scenes/caudateglow.bmp", scene);
+			rcaudmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var lcaudmat= new BABYLON.StandardMaterial("lcaudmat", scene);
+			lcaudmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lcaudmat.emissiveTexture = new BABYLON.Texture("scenes/caudateglow.bmp", scene);
+			lcaudmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			//C. Tail
+			var rtailmat= new BABYLON.StandardMaterial("rtailmat", scene);
+			rtailmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rtailmat.emissiveTexture = new BABYLON.Texture("scenes/glowtail.bmp", scene);
+			rtailmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var ltailmat= new BABYLON.StandardMaterial("ltailmat", scene);
+			ltailmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			ltailmat.emissiveTexture = new BABYLON.Texture("scenes/glowtail.bmp", scene);
+			ltailmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			//C. Body
+			var rbodmat= new BABYLON.StandardMaterial("rbodmat", scene);
+			rbodmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rbodmat.emissiveTexture = new BABYLON.Texture("scenes/glowbody.bmp", scene);
+			rbodmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var lbodmat= new BABYLON.StandardMaterial("lbodmat", scene);
+			lbodmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lbodmat.emissiveTexture = new BABYLON.Texture("scenes/glowbody.bmp", scene);
+			lbodmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			
+			//C. Head
+			var rheadmat= new BABYLON.StandardMaterial("rheadmat", scene);
+			rheadmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			rheadmat.emissiveTexture = new BABYLON.Texture("scenes/glowhead.bmp", scene);
+			rheadmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			var lheadmat= new BABYLON.StandardMaterial("lheadmat", scene);
+			lheadmat.diffuseTexture = new BABYLON.Texture("scenes/leftstriatum.bmp", scene);
+			lheadmat.emissiveTexture = new BABYLON.Texture("scenes/glowhead.bmp", scene);
+			lheadmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 
+			
+			
+			//iv
+			var ivthmat= new BABYLON.StandardMaterial("ivthmat", scene);
+			ivthmat.diffuseTexture = new BABYLON.Texture("scenes/test1.bmp", scene);
+			ivthmat.emissiveTexture = new BABYLON.Texture("scenes/ivthglow.bmp", scene);
+			ivthmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			
+			//iii
+			var iiirdmat= new BABYLON.StandardMaterial("iiirdmat", scene);
+			iiirdmat.diffuseTexture = new BABYLON.Texture("scenes/test1.bmp", scene);
+			iiirdmat.emissiveTexture = new BABYLON.Texture("scenes/iiirdglow.bmp", scene);
+			iiirdmat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+						
+			//lateral
+			var latermat= new BABYLON.StandardMaterial("latermat", scene);
+			latermat.diffuseTexture = new BABYLON.Texture("scenes/test1.bmp", scene);
+			latermat.emissiveTexture = new BABYLON.Texture("scenes/latglow.bmp", scene);
+			latermat.emissiveColor = new BABYLON.Color3(0.8,0.8,0.8); 			
+			
+		var glowLayer = new BABYLON.GlowLayer("glow", scene);
+			glowLayer.intensity = .65;
+		
+		//MESH LOADER
+			//Ventricles Mesh Loader
+			BABYLON.SceneLoader.ImportMesh("", "scenes/", "test1.obj", scene, function (newMeshes) {
+			allventricles=newMeshes[0];
+			allventricles.material= ventmat;
+			});
+			//Left striatum Mesh Loader
+			BABYLON.SceneLoader.ImportMesh("", "scenes/", "leftstriatum.obj", scene, function (newMeshes) {
+			lstriatum=newMeshes[0];
+			lstriatum.material= rstrimat;
+			});
+			
+			//Right striatum Mesh Loader
+			BABYLON.SceneLoader.ImportMesh("", "scenes/", "rightstriatum.obj", scene, function (newMeshes) {
+			rstriatum=newMeshes[0];
+			rstriatum.material= lstrimat;
+			});
+			
+		
+			//change color on click
+			// scene.onPointerDown = function (evt, pickResult) {
+			// if the click hits the ground object, we change the impact position
+			// if (pickResult.hit) {
+				// nucleus = pickResult.pickedMesh;
+				// nucleus.material=ventmat2;
+			// }
+			// };
+		
+
+				
+	// GUI=======================================================================================================
+			var advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+
+			
+			
+			//tray upper right
+			var rect1 = new BABYLON.GUI.Rectangle();	
+			rect1.width = 0.16;
+			rect1.height = "260px";
+			rect1.left=500;
+			rect1.top=-105
+			rect1.cornerRadius = 20;
+			rect1.color = "Orange";
+			rect1.thickness =0;
+			rect1.background = "gray";
+			rect1.alpha=0.2
+			advancedTexture.addControl(rect1);  
+						
+			var seltext = new BABYLON.GUI.TextBlock();
+			seltext.text = "Selection";
+			seltext.color = "white";
+			seltext.left=500;
+			seltext.top=-245
+			seltext.alpha=0.4
+			advancedTexture.addControl(seltext); 
+			
+			//tray lower right
+			var rect2 = new BABYLON.GUI.Rectangle();	
+			rect2.width = 0.16;
+			rect2.height = "160px";
+			rect2.left=500;
+			rect2.top=120
+			rect2.cornerRadius = 20;
+			rect2.color = "Orange";
+			rect2.thickness =0;
+			rect2.background = "gray";
+			rect2.alpha=0.2
+			advancedTexture.addControl(rect2);  
+			
+			
+			//tray bg left
+			var rect3 = new BABYLON.GUI.Rectangle();	
+			rect3.width = 0.205;
+			rect3.height = "175px";
+			rect3.left=-375-75;
+			rect3.top=125
+			rect3.cornerRadius = 20;
+			rect3.color = "Orange";
+			rect3.thickness =0;
+			rect3.background = "gray";
+			rect3.alpha=0.2
+			advancedTexture.addControl(rect3);  
+			
+			var transtext = new BABYLON.GUI.TextBlock();
+			transtext.text = "Transparency";
+			transtext.color = "white";
+			transtext.left=-375-75;
+			transtext.top=20
+			transtext.alpha=0.4
+			advancedTexture.addControl(transtext); 
+			
+			//tray upper left
+			var rect3 = new BABYLON.GUI.Rectangle();	
+			rect3.width = 0.19;
+			rect3.height = "65px";
+			rect3.left=-375-75;
+			rect3.top=85
+			rect3.cornerRadius = 20;
+			rect3.color = "White";
+			rect3.thickness =2;
+			rect3.background = "gray";
+			rect3.alpha=0.4
+			advancedTexture.addControl(rect3);  
+			
+			var venttranstext = new BABYLON.GUI.TextBlock();
+			venttranstext.text = "Ventricles";
+			venttranstext.color = "white";
+			venttranstext.left=-375-75;
+			venttranstext.top=75
+			venttranstext.alpha=0.8
+			advancedTexture.addControl(venttranstext); 
+			
+			
+			//tray lower left left
+			var rect3 = new BABYLON.GUI.Rectangle();	
+			rect3.width = 0.0925;
+			rect3.height = "75px";
+			rect3.left=-440-75;
+			rect3.top=160
+			rect3.cornerRadius = 20;
+			rect3.color = "White";
+			rect3.thickness =2;
+			rect3.background = "gray";
+			rect3.alpha=0.4
+			advancedTexture.addControl(rect3);  
+						
+			var lstritranstext = new BABYLON.GUI.TextBlock();
+			lstritranstext.text = "L. Striatum";
+			lstritranstext.color = "white";
+			lstritranstext.left=-440-75;
+			lstritranstext.top=150
+			lstritranstext.alpha=0.8
+			advancedTexture.addControl(lstritranstext);   			
+			
+			
+			//tray lower left right
+			var rect3 = new BABYLON.GUI.Rectangle();	
+			rect3.width = 0.0925;
+			rect3.height = "75px";
+			rect3.left=-310-75;
+			rect3.top=160
+			rect3.cornerRadius = 20;
+			rect3.color = "White";
+			rect3.thickness =2;
+			rect3.background = "gray";
+			rect3.alpha=0.4
+			advancedTexture.addControl(rect3);  
+			
+			var rstritranstext = new BABYLON.GUI.TextBlock();
+			rstritranstext.text = "R. Striatum";
+			rstritranstext.color = "white";
+			rstritranstext.left=-310-75;
+			rstritranstext.top=150
+			rstritranstext.alpha=0.8
+			advancedTexture.addControl(rstritranstext);    
+			
+		
+		
+		
+				function stdbutn(buttonname){
+					buttonname.color="white";
+					buttonname.background="gray";
+					buttonname.alpha=0.4;
+					buttonname.cornerRadius = 20;
+					
+			}
+			
+				function hgltbutn(buttonname){
+					buttonname.color="brown";
+					buttonname.background="yellow";
+					buttonname.alpha=0.8;
+					
+			}
+			
+			
+			
+
+			var butstate=1;
+//==================================================Lenticular Nucleus
+			
+			//lenticular button
+			var lentbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Lenticular Nucleus");
+			stdbutn(lentbutton);
+			lentbutton.width = "200px";
+			lentbutton.height = "30px";
+			lentbutton.left = 500;
+			lentbutton.top = -210;
+			lentbutton.alpha=0.8
+			lentbutton.onPointerUpObservable.add(function() {
+			butstate+=1;
+			swaptostri()
+				if (butstate%2==0){
+				rstriatum.material=rlentglow;
+				lstriatum.material=llentglow;
+				hgltbutn(putamenbutton)
+				hgltbutn(gpbutton)
+				hgltbutn(lentbutton)
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				}
+				else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+
+			});
+			advancedTexture.addControl(lentbutton);    
+			
+			//putamen button
+			var putamenbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Putamen");
+			putamenbutton.width = "85px";
+			putamenbutton.height = "55px";
+			putamenbutton.color = "white";
+			putamenbutton.cornerRadius = 20;
+			putamenbutton.background = "gray";
+			putamenbutton.left = 455;
+			putamenbutton.top = -165;
+			putamenbutton.alpha=0.4
+			putamenbutton.onPointerUpObservable.add(function() {
+				butstate+=1;
+				swaptostri()
+				if (butstate%2==0){
+				rstriatum.material=rputmat;
+				lstriatum.material=lputmat;
+				hgltbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+				else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				}
+			});
+			advancedTexture.addControl(putamenbutton);    
+			
+			
+			
+			//globus pallidus button
+			var gpbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Globus Pallidus");
+			stdbutn(gpbutton)
+			gpbutton.width = "85px";
+			gpbutton.height = "55px";
+			gpbutton.left = 545;
+			gpbutton.top = -165;
+			gpbutton.onPointerUpObservable.add(function() {
+				butstate+=1;
+				swaptostri()
+			if (butstate%2==0){
+				rstriatum.material=rgpmat;
+				lstriatum.material=lgpmat;
+				hgltbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+			}
+			});
+			advancedTexture.addControl(gpbutton);    
+			
+			
+			
+			
+			
+
+//========================================================================================caudate
+			//caudate button
+			var caudbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Caudate Nucleus");
+			caudbutton.width = "200px";
+			caudbutton.height = "30px";
+			caudbutton.color = "white";
+			caudbutton.cornerRadius = 20;
+			caudbutton.background = "gray";
+			caudbutton.left = 500;
+			caudbutton.top = -105;
+			caudbutton.alpha=0.8
+			caudbutton.onPointerUpObservable.add(function() {
+				butstate+=1;
+				swaptostri()
+				if (butstate%2==0){
+				rstriatum.material=rcaudmat;
+				lstriatum.material=lcaudmat;
+				stdbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				hgltbutn(tcaudbutton)
+				hgltbutn(bcaudbutton)
+				hgltbutn(hcaudbutton)
+				hgltbutn(caudbutton)
+				
+				}
+				else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				}
+				
+			});
+			advancedTexture.addControl(caudbutton);  
+			
+			
+				
+			//head of caudate button
+			var hcaudbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Head");
+			hcaudbutton.width = "55px";
+			hcaudbutton.height = "55px";
+			hcaudbutton.color = "white";
+			hcaudbutton.cornerRadius = 20;
+			hcaudbutton.background = "gray";
+			hcaudbutton.left = 435;
+			hcaudbutton.top = -60;
+			hcaudbutton.alpha=0.4
+			hcaudbutton.onPointerUpObservable.add(function() {
+				butstate+=1;
+				swaptostri()
+			if (butstate%2==0){
+				rstriatum.material=rheadmat;
+				lstriatum.material=lheadmat;
+				hgltbutn(hcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8				
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(tcaudbutton)
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+			}
+			});
+			advancedTexture.addControl(hcaudbutton);  
+			
+			//body of caudate button
+			var bcaudbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Body");
+			bcaudbutton.width = "55px";
+			bcaudbutton.height = "55px";
+			bcaudbutton.color = "white";
+			bcaudbutton.cornerRadius = 20;
+			bcaudbutton.background = "gray";
+			bcaudbutton.left = 495;
+			bcaudbutton.top = -60;
+			bcaudbutton.alpha=0.4
+			bcaudbutton.onPointerUpObservable.add(function() {
+					butstate+=1;
+				swaptostri()
+			if (butstate%2==0){
+				rstriatum.material=rbodmat;
+				lstriatum.material=lbodmat;
+				hgltbutn(bcaudbutton)
+				stdbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8				
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(bcaudbutton)
+				stdbutn(tcaudbutton)
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+			}
+				
+			});
+			advancedTexture.addControl(bcaudbutton);  
+			
+			
+			//tail of caudate button
+			var tcaudbutton = BABYLON.GUI.Button.CreateSimpleButton("tcaud", "Tail");
+			tcaudbutton.width = "55px";
+			tcaudbutton.height = "55px";
+			tcaudbutton.color = "white";
+			tcaudbutton.cornerRadius = 20;
+			tcaudbutton.background = "gray";
+			tcaudbutton.left = 555;
+			tcaudbutton.top = -60;
+			tcaudbutton.alpha=0.4
+			tcaudbutton.onPointerUpObservable.add(function() {
+					butstate+=1;
+				swaptostri()
+			if (butstate%2==0){
+				rstriatum.material=rtailmat;
+				lstriatum.material=ltailmat;
+				hgltbutn(tcaudbutton)
+				stdbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8				
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(tcaudbutton)
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+			}
+				
+				
+			});
+			advancedTexture.addControl(tcaudbutton);  
+			
+			
+			
+//===================================================Amygdala
+
+			//amygdala button
+			var amgdbutton = BABYLON.GUI.Button.CreateSimpleButton("amygbutn", "Amygdala");
+			amgdbutton.width = "200px";
+			amgdbutton.height = "30px";
+			amgdbutton.color = "white";
+			amgdbutton.cornerRadius = 20;
+			amgdbutton.background = "gray";
+			amgdbutton.left = 500;
+			amgdbutton.top = 0;
+			amgdbutton.alpha=0.8
+			amgdbutton.onPointerUpObservable.add(function() {
+				butstate+=1;
+				swaptostri()
+			if (butstate%2==0){
+				rstriatum.material=ramygmat;
+				lstriatum.material=lamygmat;
+				hgltbutn(amgdbutton)
+				stdbutn(putamenbutton)
+				stdbutn(gpbutton)
+				stdbutn(lentbutton)
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				
+				
+			}
+				
+			});
+			advancedTexture.addControl(amgdbutton);  
+			
+			
+			
+			
+			
+//===================================================VENTRICLES
+var ventbutstate =0
+
+
+			//ventricles button
+			var ventricbutton = BABYLON.GUI.Button.CreateSimpleButton("amygbutn", "Ventricles");
+			ventricbutton.width = "200px";
+			ventricbutton.height = "30px";
+			ventricbutton.color = "white";
+			ventricbutton.cornerRadius = 20;
+			ventricbutton.background = "gray";
+			ventricbutton.left = 500;
+			ventricbutton.top = 65;
+			ventricbutton.alpha=0.8
+			ventricbutton.onPointerUpObservable.add(function() {
+				swaptovents()
+				if (ventbutstate==0){
+					ventbutstate=1}
+				
+			});
+			advancedTexture.addControl(ventricbutton);  
+			
+
+			//lateral ventricle button
+			var latventbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "Lateral Ventricles");
+			latventbutton.width = "150px";
+			latventbutton.height = "30px";
+			latventbutton.color = "white";
+			latventbutton.cornerRadius = 20;
+			latventbutton.background = "gray";
+			latventbutton.left = 500;
+			latventbutton.top = 100;
+			latventbutton.alpha=0.4
+			latventbutton.onPointerUpObservable.add(function() {
+				swaptovents()
+				ventbutstate+=1
+				butstate+=1
+				if (ventbutstate%2==0){
+					rstriatum.material=rstrimat;
+					lstriatum.material=lstrimat;
+					allventricles.material= latermat
+					stdbutn(amgdbutton)
+					stdbutn(putamenbutton)
+					stdbutn(gpbutton)
+					stdbutn(lentbutton)
+					lentbutton.alpha=0.8
+					stdbutn(tcaudbutton)
+					stdbutn(bcaudbutton)
+					stdbutn(hcaudbutton)
+					stdbutn(caudbutton)
+					stdbutn(iiirdventbutton)
+					stdbutn(ivthventbutton)
+					caudbutton.alpha=0.8
+					amgdbutton.alpha=0.8
+					hgltbutn(latventbutton)
+					
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				allventricles.material= ventmat
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(ivthventbutton)
+				stdbutn(iiirdventbutton)
+				stdbutn(caudbutton)
+				stdbutn(latventbutton)
+				caudbutton.alpha=0.8
+
+				
+				}
+				
+			});
+			advancedTexture.addControl(latventbutton);    
+		
+			//iiird ventricle button
+			var iiirdventbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "IIIrd Ventricle");
+			iiirdventbutton.width = "150px";
+			iiirdventbutton.height = "30px";
+			iiirdventbutton.color = "white";
+			iiirdventbutton.cornerRadius = 20;
+			iiirdventbutton.background = "gray";
+			iiirdventbutton.left = 500;
+			iiirdventbutton.top = 135;
+			iiirdventbutton.alpha = .4;
+			iiirdventbutton.onPointerUpObservable.add(function() {
+				
+				swaptovents()
+				ventbutstate+=1
+				butstate+=1
+				if (ventbutstate%2==0){
+					rstriatum.material=rstrimat;
+					lstriatum.material=lstrimat;
+					allventricles.material= iiirdmat
+					stdbutn(amgdbutton)
+					stdbutn(putamenbutton)
+					stdbutn(gpbutton)
+					stdbutn(lentbutton)
+					lentbutton.alpha=0.8
+					stdbutn(tcaudbutton)
+					stdbutn(bcaudbutton)
+					stdbutn(hcaudbutton)
+					stdbutn(caudbutton)
+					caudbutton.alpha=0.8
+					amgdbutton.alpha=0.8
+					hgltbutn(iiirdventbutton)
+					stdbutn(latventbutton)
+					
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				allventricles.material= ventmat
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(ivthventbutton)
+				stdbutn(iiirdventbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				stdbutn(latventbutton)
+				
+				}
+			});
+			advancedTexture.addControl(iiirdventbutton);    
+		
+				
+			//ivth ventricle button
+			var ivthventbutton = BABYLON.GUI.Button.CreateSimpleButton("but1", "IVth Ventricle");
+			ivthventbutton.width = "150px";
+			ivthventbutton.height = "30px";
+			ivthventbutton.color = "white";
+			ivthventbutton.cornerRadius = 20;
+			ivthventbutton.background = "gray";
+			ivthventbutton.left = 500;
+			ivthventbutton.top = 170;
+			ivthventbutton.alpha = .4;
+			
+			ivthventbutton.onPointerUpObservable.add(function() {
+			
+			
+				swaptovents()
+				ventbutstate+=1
+				butstate+=1
+				if (ventbutstate%2==0){
+					rstriatum.material=rstrimat;
+					lstriatum.material=lstrimat;
+					allventricles.material= ivthmat
+					stdbutn(amgdbutton)
+					stdbutn(putamenbutton)
+					stdbutn(gpbutton)
+					stdbutn(lentbutton)
+					lentbutton.alpha=0.8
+					stdbutn(tcaudbutton)
+					stdbutn(bcaudbutton)
+					stdbutn(hcaudbutton)
+					stdbutn(caudbutton)
+					caudbutton.alpha=0.8
+					amgdbutton.alpha=0.8
+					hgltbutn(ivthventbutton)
+					stdbutn(iiirdventbutton)
+					stdbutn(latventbutton)
+					
+				
+				}
+			else{
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				allventricles.material= ventmat
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(ivthventbutton)
+				stdbutn(caudbutton)
+				stdbutn(iiirdventbutton)
+				stdbutn(latventbutton)
+				caudbutton.alpha=0.8
+				
+				
+			}
+
+				
+			});
+			advancedTexture.addControl(ivthventbutton);   
+		
+	function swaptovents(){
+				//reverse transparency
+				rstriatum.material=rstrimat;
+				lstriatum.material=lstrimat;
+				stdbutn(gpbutton)
+				stdbutn(putamenbutton)
+				stdbutn(lentbutton)
+				stdbutn(amgdbutton)
+				amgdbutton.alpha=0.8
+				lentbutton.alpha=0.8
+				stdbutn(tcaudbutton)
+				stdbutn(bcaudbutton)
+				stdbutn(hcaudbutton)
+				stdbutn(ivthventbutton)
+				stdbutn(caudbutton)
+				caudbutton.alpha=0.8
+				butstate=1
+				
+				allventricles.material.alpha=1
+				lstrimat.alpha=0.15
+				rstrimat.alpha=0.15
+				lstrislider.value = .15;
+				rstrislider.value = .15;
+				ventslider.value=1
+				
+
+				
+	}
+		function swaptostri(){
+				//reverse transparency
+				allventricles.material.alpha=0.23
+				allventricles.material=ventmat
+				
+				lstrimat.alpha=1
+				rstrimat.alpha=1
+				lstrislider.value = 1;
+				rstrislider.value = 1;
+				ventslider.value=.23
+				
+
+				stdbutn(ivthventbutton)
+				stdbutn(iiirdventbutton)
+				stdbutn(latventbutton)
+				ventbutstate=0
+	}
+		
+
+		
+		
+	//transslider
+	//ventricles
+	var ventslider = new BABYLON.GUI.Slider();
+	ventslider.alpha=0.4
+	ventslider.left=-375-75;
+	ventslider.top=100
+    ventslider.minimum = 0.001;
+    ventslider.maximum = 1;
+    ventslider.value = 1;
+    ventslider.height = "20px";
+    ventslider.width = "210px";
+	ventslider.isThumbCircle=1;
+	ventslider.color="white";
+    ventslider.onValueChangedObservable.add(function(value) {
+		allventricles.material.alpha=value;
+    });
+    advancedTexture.addControl(ventslider);    
+        
+		
+	//left stri
+	var lstrislider = new BABYLON.GUI.Slider();
+	lstrislider.alpha=0.4
+	lstrislider.left=-440-75;
+	lstrislider.top=175
+    lstrislider.minimum = 0.001;
+    lstrislider.maximum = 1;
+    lstrislider.value = 1;
+    lstrislider.height = "20px";
+    lstrislider.width = "105px";
+	lstrislider.isThumbCircle=1;
+	lstrislider.color="white";
+    lstrislider.onValueChangedObservable.add(function(value) {
+		rstriatum.material.alpha=value;
+    });
+    advancedTexture.addControl(lstrislider);  
+	
+	
+	
+		//right stri
+	var rstrislider = new BABYLON.GUI.Slider();
+	rstrislider.alpha=0.4
+	rstrislider.left=-315-75
+	rstrislider.top=175
+    rstrislider.minimum = 0.001;
+    rstrislider.maximum = 1;
+    rstrislider.value = 1;
+    rstrislider.height = "20px";
+    rstrislider.width = "105px";
+	rstrislider.isThumbCircle=1;
+	rstrislider.color="white";
+    rstrislider.onValueChangedObservable.add(function(value) {
+		lstriatum.material.alpha=value;
+    });
+    advancedTexture.addControl(rstrislider);  
+	
+	
+	
+	
+	
+
+            return scene;
+        }
+        
+		
+        var engine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+        var scene = createScene();
+
+        engine.runRenderLoop(function () {
+            if (scene) {
+                scene.render();
+            }
+        });
+
+        // Resize
+        window.addEventListener("resize", function () {
+            engine.resize();
+        });
+    </script>
+</body>
+</html>
